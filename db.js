@@ -15,7 +15,7 @@ pool.getConnection((err, connection) => {
   if (err) console.log(chalk.red("Database error ->"), err.message);
   if (connection) {
     console.log(
-      chalk.blue("Connected to"),
+      chalk.blue("- Connected to"),
       chalk.magenta(connection.config.database),
       chalk.blue("on"),
       chalk.magenta(connection.config.host)
