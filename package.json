@@ -4,6 +4,7 @@
   "description": "Test API for MySQL.",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,8 +20,10 @@
   "homepage": "https://github.com/drlorenesi/test-api#readme",
   "dependencies": {
     "chalk": "^4.0.0",
+    "debug": "^4.1.1",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "helmet": "^4.0.0",
     "morgan": "^1.10.0",
     "mysql": "^2.18.1"
   }

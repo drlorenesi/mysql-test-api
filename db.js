@@ -1,7 +1,7 @@
-require("dotenv").config();
-const util = require("util");
-const chalk = require("chalk");
-const mysql = require("mysql");
+require('dotenv').config();
+const util = require('util');
+const chalk = require('chalk');
+const mysql = require('mysql');
 
 const pool = mysql.createPool({
   connectionLimit: 10,
@@ -12,12 +12,12 @@ const pool = mysql.createPool({
 });
 
 pool.getConnection((err, connection) => {
-  if (err) console.log(chalk.red("Database error ->"), err.message);
+  if (err) console.log(chalk.red('Database error ->'), err.message);
   if (connection) {
     console.log(
-      chalk.blue("- Connected to"),
+      chalk.blue('- Connected to'),
       chalk.magenta(connection.config.database),
-      chalk.blue("on"),
+      chalk.blue('on'),
       chalk.magenta(connection.config.host)
     );
     connection.release();
