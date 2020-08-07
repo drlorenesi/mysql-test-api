@@ -3,6 +3,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const chalk = require('chalk');
 const app = express();
+const test = require('./sqlInjection');
 const users = require('./routes/users');
 
 // Middleware
@@ -13,6 +14,7 @@ if (app.get('env') === 'development') {
 }
 
 // Routes
+app.use('/api/test', test);
 app.use('/api/users', users);
 
 const env = app.get('env').toUpperCase();

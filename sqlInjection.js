@@ -1,9 +1,13 @@
-// To simulate SQL Injection attack copy and paste
-// the following URL in the browser
-// http://localhost:3000/test/1%20OR%20(1=1)
+// To simulate an SQL Injection attack copy and paste
+// the following URL in the browser:
+// http://localhost:3000/api/test/1%20OR%20(1=1)
 // (same as "1 OR 1=1")
 // This attack will return all user data
-app.get('/test/:id', async (req, res) => {
+const express = require('express');
+const router = express.Router();
+const db = require('./db');
+
+router.get('/:id', async (req, res) => {
   console.log(req.params.id);
   try {
     const user = await db.query(
@@ -18,3 +22,5 @@ app.get('/test/:id', async (req, res) => {
     res.status(500).send('Something went wrong.');
   }
 });
+
+module.exports = router;

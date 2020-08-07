@@ -1,27 +1,24 @@
 const express = require('express');
 const router = express.Router();
+const Joi = require('joi');
+const debugDB = require('debug')('app:db');
 const chalk = require('chalk');
 const db = require('../db');
 
-// Helper functions
-const CURRENT_TIMESTAMP = {
-  toSqlString: function () {
-    return 'CURRENT_TIMESTAMP()';
-  },
-};
-
 // Get all Users
+// -------------
 router.get('/', async (req, res) => {
   try {
     const users = await db.query('SELECT * FROM users ORDER BY last_name ASC');
     res.send(users);
   } catch (ex) {
-    console.log(chalk.red('Database error ->'), ex.message);
+    debugDB(chalk.red('Database error ->'), ex.message);
     res.status(500).send('Oops! Something went wrong from our end.');
   }
 });
 
 // Get a specific User
+// -------------------
 router.get('/:id', async (req, res) => {
   try {
     const user = await db.query('SELECT * FROM users WHERE user_id = ?', [
@@ -31,91 +28,129 @@ router.get('/:id', async (req, res) => {
       return res.status(404).send('The user with the given ID was not found.');
     res.send(user);
   } catch (ex) {
-    console.log(chalk.red('Database error ->'), ex.message);
+    debugDB(chalk.red('Database error ->'), ex.message);
     res.status(500).send('Oops! Something went wrong from our end.');
   }
 });
 
 // Create new User
+// ---------------
 router.post('/', async (req, res) => {
-  const user = {
-    first_name: req.body.first_name,
-    last_name: req.body.last_name,
-    email: req.body.email,
-    pass: req.body.pass,
-    registration_date: CURRENT_TIMESTAMP,
-    modified: CURRENT_TIMESTAMP,
-  };
+  // Validate input
+  const { error } = validateUser(req.body);
+  if (error) return res.status(404).send(error.details[0].message);
+  // Add timestamps to input
+  let user = req.body;
+  user.registration_date = getTimeStamp();
+  user.modified = getTimeStamp();
 
   try {
+    // Check for duplicate email
+    const duplicate = await db.query('SELECT * FROM users WHERE email LIKE ?', [
+      req.body.email,
+    ]);
+    if (duplicate.length == 1)
+      return res.status(404).send('Please use another email.');
+    // Insert valid user
     const result = await db.query('INSERT INTO users SET ?', [user]);
-    console.log(chalk.blue('Affected rows:'), result.affectedRows);
-    res.send(user);
+    debugDB(chalk.blue('Affected rows:'), result.affectedRows);
+    // Return new user
+    const newUser = await db.query('SELECT * FROM users WHERE user_id = ?', [
+      result.insertId,
+    ]);
+    res.send(newUser);
   } catch (ex) {
-    console.log(chalk.red('Database error ->'), ex.message);
+    debugDB(chalk.red('Database error ->'), ex.message);
     res.status(500).send('Oops! Something went wrong from our end.');
   }
 });
 
 // Delete User
+// -----------
 router.delete('/:id', async (req, res) => {
-  // Search for user
   try {
+    // Search for user
     const user = await db.query('SELECT * FROM users WHERE user_id = ?', [
       req.params.id,
     ]);
     if (user.length === 0)
       return res.status(404).send('The user with the given ID was not found.');
-
     // If user exists, delete
-    try {
-      const result = await db.query('DELETE FROM users WHERE user_id = ?', [
-        req.params.id,
-      ]);
-      console.log(chalk.blue('Affected rows:'), result.affectedRows);
-      res.send(user);
-    } catch (ex) {
-      console.log(ex.message);
-      res.status(500).send('Oops! Something went wrong from our end.');
-    }
+    const result = await db.query('DELETE FROM users WHERE user_id = ?', [
+      req.params.id,
+    ]);
+    debugDB(chalk.blue('Affected rows:'), result.affectedRows);
+    res.send(user);
   } catch (ex) {
-    console.log(ex.message);
+    debugDB(ex.message);
     res.status(500).send('Oops! Something went wrong from our end.');
   }
 });
 
 // Update User
+// -----------
 router.put('/:id', async (req, res) => {
-  // Search for user
+  // Validate input before attempting update
+  const { error } = validateUser(req.body);
+  if (error) return res.status(404).send(error.details[0].message);
+
   try {
-    const search = await db.query('SELECT * FROM users WHERE user_id = ?', [
+    // Search for user
+    const user = await db.query('SELECT * FROM users WHERE user_id = ?', [
       req.params.id,
     ]);
-    if (search.length === 0)
+    if (user.length === 0)
       return res.status(404).send('The user with the given ID was not found.');
-    // If user exists, update
-    try {
-      let update = {
-        first_name: req.body.first_name,
-        last_name: req.body.last_name,
-        email: req.body.email,
-        pass: req.body.pass,
-        modified: CURRENT_TIMESTAMP,
-      };
+    // Test for unique email address
+    const duplicate = await db.query(
+      'SELECT user_id FROM users WHERE email = ? AND user_id != ?',
+      [req.body.email, req.params.id]
+    );
+    // If e-mail is unique update info
+    if (duplicate.length == 0) {
       const result = await db.query('UPDATE users SET ? WHERE user_id = ?', [
-        update,
+        req.body,
         req.params.id,
       ]);
-      console.log(chalk.blue('Updated rows:'), result.changedRows);
-      res.send(update);
-    } catch (ex) {
-      console.log(ex.message);
-      res.status(500).send('Oops! Something went wrong from our end.');
+      debugDB(chalk.blue('Updated rows:'), result.changedRows);
+    } else {
+      return res.status(404).send('Please use another email.');
     }
+    // Get updated user info
+    const updatedInfo = await db.query(
+      'SELECT * FROM users WHERE user_id = ?',
+      [req.params.id]
+    );
+    res.send(updatedInfo);
   } catch (ex) {
-    console.log(ex.message);
+    debugDB(ex.message);
     res.status(500).send('Oops! Something went wrong from our end.');
   }
 });
+
+// Validation function
+function validateUser(user) {
+  const schema = Joi.object({
+    first_name: Joi.string()
+      .regex(/^[a-zA-Z\p{L} /'.-]{3,45}$/u)
+      .required(),
+    last_name: Joi.string()
+      .regex(/^[a-zA-Z\p{L} /'.-]{3,45}$/u)
+      .required(),
+    email: Joi.string().email().required(),
+    password: Joi.string().alphanum().min(5).required(),
+    registration_date: Joi.date(),
+    modified: Joi.date(),
+  });
+  return schema.validate(user);
+}
+
+// Get Timestamp funtion
+function getTimeStamp() {
+  let date = new Date();
+  return (
+    date.toISOString().split('T')[0] + ' ' + date.toTimeString().split(' ')[0]
+  );
+}
 
 module.exports = router;

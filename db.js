@@ -22,6 +22,7 @@ pool.getConnection((err, connection) => {
     );
     connection.release();
   }
+  // return;
 });
 
 // Promisify for Node.js async/await.
