@@ -26,7 +26,7 @@ router.get('/:id', async (req, res) => {
     ]);
     if (user.length === 0)
       return res.status(404).send('The user with the given ID was not found.');
-    res.send(user);
+    res.send(user[0]);
   } catch (ex) {
     debugDB(chalk.red('Database error ->'), ex.message);
     res.status(500).send('Oops! Something went wrong from our end.');
@@ -58,7 +58,7 @@ router.post('/', async (req, res) => {
     const newUser = await db.query('SELECT * FROM users WHERE user_id = ?', [
       result.insertId,
     ]);
-    res.send(newUser);
+    res.send(newUser[0]);
   } catch (ex) {
     debugDB(chalk.red('Database error ->'), ex.message);
     res.status(500).send('Oops! Something went wrong from our end.');
@@ -80,7 +80,7 @@ router.delete('/:id', async (req, res) => {
       req.params.id,
     ]);
     debugDB(chalk.blue('Affected rows:'), result.affectedRows);
-    res.send(user);
+    res.send(user[0]);
   } catch (ex) {
     debugDB(ex.message);
     res.status(500).send('Oops! Something went wrong from our end.');
@@ -121,7 +121,7 @@ router.put('/:id', async (req, res) => {
       'SELECT * FROM users WHERE user_id = ?',
       [req.params.id]
     );
-    res.send(updatedInfo);
+    res.send(updatedInfo[0]);
   } catch (ex) {
     debugDB(ex.message);
     res.status(500).send('Oops! Something went wrong from our end.');
