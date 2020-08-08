@@ -5,6 +5,7 @@ const chalk = require('chalk');
 const app = express();
 const test = require('./sqlInjection');
 const users = require('./routes/users');
+const auth = require('./routes/auth');
 
 // Middleware
 app.use(express.json());
@@ -16,6 +17,7 @@ if (app.get('env') === 'development') {
 // Routes
 app.use('/api/test', test);
 app.use('/api/users', users);
+app.use('/api/auth', auth);
 
 const env = app.get('env').toUpperCase();
 const port = process.env.PORT || 3000;

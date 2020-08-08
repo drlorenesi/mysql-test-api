@@ -13,6 +13,7 @@ DB_HOST=localhost
 DB_USER=web_user
 DB_PASSWORD=secret_password
 DB_DATABASE=my_database
+jwtPrivateKey=myPrivateKey
 ```
 
 To start the server run:

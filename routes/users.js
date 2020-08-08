@@ -3,6 +3,8 @@ const router = express.Router();
 const validateUser = require('../validation/user');
 const debugDB = require('debug')('app:db');
 const chalk = require('chalk');
+const _ = require('lodash');
+const bcrypt = require('bcrypt');
 const db = require('../db');
 
 // Get all Users
@@ -10,6 +12,18 @@ const db = require('../db');
 router.get('/', async (req, res) => {
   try {
     const users = await db.query('SELECT * FROM users ORDER BY last_name ASC');
+    // Return only selected user data
+    // res.send(
+    //   users.map((user) =>
+    //     _.pick(user, [
+    //       'user_id',
+    //       'first_name',
+    //       'last_name',
+    //       'email',
+    //       'user_level',
+    //     ])
+    //   )
+    // );
     res.send(users);
   } catch (ex) {
     debugDB(chalk.red('Database error ->'), ex.message);
@@ -26,6 +40,8 @@ router.get('/:id', async (req, res) => {
     ]);
     if (user.length === 0)
       return res.status(404).send('The user with the given ID was not found.');
+    // Return only selected updated fields user
+    // res.send(_.pick(user[0], ['user_id', 'first_name', 'last_name', 'email']));
     res.send(user[0]);
   } catch (ex) {
     debugDB(chalk.red('Database error ->'), ex.message);
@@ -39,10 +55,9 @@ router.post('/', async (req, res) => {
   // Validate input
   const { error } = validateUser(req.body);
   if (error) return res.status(404).send(error.details[0].message);
-  // Add timestamps to input
-  let user = req.body;
-  user.registration_date = getTimeStamp();
-  user.modified = getTimeStamp();
+  // Create user object, pick only required input properties and add timestamps
+  let user = _.pick(req.body, ['first_name', 'last_name', 'email', 'password']);
+  user.registration_date = user.modified = getTimeStamp();
 
   try {
     // Check for duplicate email
@@ -51,14 +66,19 @@ router.post('/', async (req, res) => {
     ]);
     if (duplicate.length == 1)
       return res.status(404).send('Please use another email.');
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(user.password, salt);
     // Insert valid user
     const result = await db.query('INSERT INTO users SET ?', [user]);
     debugDB(chalk.blue('Affected rows:'), result.affectedRows);
-    // Return new user
+    // Return only selected fields of new user
     const newUser = await db.query('SELECT * FROM users WHERE user_id = ?', [
       result.insertId,
     ]);
-    res.send(newUser[0]);
+    res.send(
+      _.pick(newUser[0], ['user_id', 'first_name', 'last_name', 'email'])
+    );
   } catch (ex) {
     debugDB(chalk.red('Database error ->'), ex.message);
     res.status(500).send('Oops! Something went wrong from our end.');
@@ -80,6 +100,8 @@ router.delete('/:id', async (req, res) => {
       req.params.id,
     ]);
     debugDB(chalk.blue('Affected rows:'), result.affectedRows);
+    // Return only selected fields of deleted user
+    // res.send(_.pick(user[0], ['user_id', 'first_name', 'last_name', 'email']));
     res.send(user[0]);
   } catch (ex) {
     debugDB(ex.message);
@@ -108,8 +130,20 @@ router.put('/:id', async (req, res) => {
     );
     // If e-mail is unique update info
     if (duplicate.length == 0) {
+      // Create update object, pick only required input properties and add timestamps
+      let update = _.pick(req.body, [
+        'first_name',
+        'last_name',
+        'email',
+        'password',
+        'user_level',
+      ]);
+      update.modified = getTimeStamp();
+      // Hash password
+      const salt = await bcrypt.genSalt(10);
+      update.password = await bcrypt.hash(update.password, salt);
       const result = await db.query('UPDATE users SET ? WHERE user_id = ?', [
-        req.body,
+        update,
         req.params.id,
       ]);
       debugDB(chalk.blue('Updated rows:'), result.changedRows);
@@ -121,7 +155,10 @@ router.put('/:id', async (req, res) => {
       'SELECT * FROM users WHERE user_id = ?',
       [req.params.id]
     );
-    res.send(updatedInfo[0]);
+    // Return only selected updated fields user
+    res.send(
+      _.pick(updatedInfo[0], ['user_id', 'first_name', 'last_name', 'email'])
+    );
   } catch (ex) {
     debugDB(ex.message);
     res.status(500).send('Oops! Something went wrong from our end.');

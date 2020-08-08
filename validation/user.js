@@ -11,8 +11,9 @@ function validateUser(user) {
       .required(),
     email: Joi.string().email().required(),
     password: Joi.string().alphanum().min(5).required(),
-    registration_date: Joi.date(),
-    modified: Joi.date(),
+    user_level: Joi.number().integer().min(0).max(9),
+    registration_date: Joi.date(), // might not be necesary
+    modified: Joi.date(), // might not be necesary
   });
   return schema.validate(user);
 }
