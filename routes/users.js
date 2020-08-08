@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Joi = require('joi');
+const validateUser = require('../validation/user');
 const debugDB = require('debug')('app:db');
 const chalk = require('chalk');
 const db = require('../db');
@@ -127,23 +127,6 @@ router.put('/:id', async (req, res) => {
     res.status(500).send('Oops! Something went wrong from our end.');
   }
 });
-
-// Validation function
-function validateUser(user) {
-  const schema = Joi.object({
-    first_name: Joi.string()
-      .regex(/^[a-zA-Z\p{L} /'.-]{3,45}$/u)
-      .required(),
-    last_name: Joi.string()
-      .regex(/^[a-zA-Z\p{L} /'.-]{3,45}$/u)
-      .required(),
-    email: Joi.string().email().required(),
-    password: Joi.string().alphanum().min(5).required(),
-    registration_date: Joi.date(),
-    modified: Joi.date(),
-  });
-  return schema.validate(user);
-}
 
 // Get Timestamp funtion
 function getTimeStamp() {
