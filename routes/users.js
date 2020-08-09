@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const validateUser = require('../validation/user');
+const auth = require('../middleware/auth');
+const admin = require('../middleware/admin');
 const debugDB = require('debug')('app:db');
 const chalk = require('chalk');
 const _ = require('lodash');
@@ -25,6 +27,26 @@ router.get('/', async (req, res) => {
     //   )
     // );
     res.send(users);
+  } catch (ex) {
+    debugDB(chalk.red('Database error ->'), ex.message);
+    res.status(500).send('Oops! Something went wrong from our end.');
+  }
+});
+
+// Get logged in User (Protected)
+// ------------------------------
+router.get('/me', auth, async (req, res) => {
+  try {
+    const user = await db.query('SELECT * FROM users WHERE email = ?', [
+      req.user.email,
+    ]);
+    if (user.length === 0)
+      return res
+        .status(404)
+        .send('The user with the given email was not found.');
+    // Return only selected updated fields user
+    // res.send(_.pick(user[0], ['user_id', 'first_name', 'last_name', 'email']));
+    res.send(user[0]);
   } catch (ex) {
     debugDB(chalk.red('Database error ->'), ex.message);
     res.status(500).send('Oops! Something went wrong from our end.');
@@ -85,9 +107,9 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Delete User
-// -----------
-router.delete('/:id', async (req, res) => {
+// Delete User (Protected & Admin)
+// -------------------------------
+router.delete('/:id', [auth, admin], async (req, res) => {
   try {
     // Search for user
     const user = await db.query('SELECT * FROM users WHERE user_id = ?', [
@@ -109,9 +131,9 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// Update User
-// -----------
-router.put('/:id', async (req, res) => {
+// Update User (Protected)
+// -----------------------
+router.put('/:id', auth, async (req, res) => {
   // Validate input before attempting update
   const { error } = validateUser(req.body);
   if (error) return res.status(404).send(error.details[0].message);

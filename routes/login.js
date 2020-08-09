@@ -9,6 +9,11 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../db');
 
+if (!process.env.jwtPrivateKey) {
+  console.error(chalk.red('FATAL ERROR: jwtPrivateKey is not defined.'));
+  process.exit(1);
+}
+
 // Log in user
 // ---------------
 router.post('/', async (req, res) => {
@@ -31,17 +36,20 @@ router.post('/', async (req, res) => {
     );
     if (!validPassword)
       return res.status(400).send('Invalid email or password.');
-    // Send JWT
-    // var token = jwt.sign({ foo: 'bar' }, process.env.jwtPrivateKey);
+    // Create payload and send JWT
     const token = jwt.sign(
       {
         user_id: user[0].user_id,
         first_name: user[0].first_name,
         user_level: user[0].user_level,
+        email: user[0].email,
+        exp: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour expiration time
       },
       process.env.jwtPrivateKey
     );
-    res.send(token);
+    res
+      .header('x-auth-token', token)
+      .send(_.pick(user[0], ['user_id', 'first_name', 'last_name', 'email']));
   } catch (ex) {
     debugDB(chalk.red('Database error ->'), ex.message);
     res.status(500).send('Oops! Something went wrong from our end.');
