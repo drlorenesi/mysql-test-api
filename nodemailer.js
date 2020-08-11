@@ -2,7 +2,6 @@ require('dotenv').config();
 const nodemailer = require('nodemailer');
 const chalk = require('chalk');
 const { v4: uuidv4 } = require('uuid');
-const confirmation = uuidv4(); // ⇨ '1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed'
 
 let transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
@@ -14,8 +13,14 @@ let transporter = nodemailer.createTransport({
   },
 });
 
+let email = 'drlorenesi@gmail.com';
+const confirmation = uuidv4();
+let activate = `http://localhost:3000/api/activate/?x=' . urlencode($e) . '&y=' . $a`;
+
+let activate = `<a href="' . $activate . '"class="alert-link">' . $activate . ' </a>`;
+
 let message = `<h3>Hello!</h3>
-  <p>Thank you for filling out our form! Please click on the confirmation code below:</p>
+  <p>Thank you for registering! Please click on the confirmation code below to activate your account:</p>
   <p><a href="http://localhost:3000/api/activate/${confirmation}"></a></p>`;
 
 async function main() {
@@ -23,7 +28,7 @@ async function main() {
     let info = await transporter.sendMail({
       from: `"Chocolates 🍫" <${process.env.EMAIL_USER}>`,
       to: 'drlorenesi@gmail.com',
-      subject: 'Hello ✔',
+      subject: 'Activate Account',
       html: message,
     });
     console.log('Message sent: %s', info.messageId);

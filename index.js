@@ -5,6 +5,7 @@ const chalk = require('chalk');
 const app = express();
 const test = require('./sqlInjection');
 const users = require('./routes/users');
+const activate = require('./routes/activate');
 const auth = require('./routes/login');
 
 // Middleware
@@ -17,6 +18,7 @@ if (app.get('env') === 'development') {
 // Routes
 app.use('/api/test', test);
 app.use('/api/users', users);
+app.use('/api/activate', activate);
 app.use('/api/login', auth);
 
 const env = app.get('env').toUpperCase();

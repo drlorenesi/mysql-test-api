@@ -7,6 +7,7 @@ const debugDB = require('debug')('app:db');
 const chalk = require('chalk');
 const _ = require('lodash');
 const bcrypt = require('bcrypt');
+const { v4: uuidv4 } = require('uuid');
 const db = require('../db');
 
 // Get all Users
@@ -77,9 +78,10 @@ router.post('/', async (req, res) => {
   // Validate input
   const { error } = validateUser(req.body);
   if (error) return res.status(404).send(error.details[0].message);
-  // Create user object, pick only required input properties and add timestamps
+  // Create user object, pick only required input properties, add timestamps and active
   let user = _.pick(req.body, ['first_name', 'last_name', 'email', 'password']);
   user.registration_date = user.modified = getTimeStamp();
+  user.active = uuidv4();
 
   try {
     // Check for duplicate email
@@ -87,7 +89,7 @@ router.post('/', async (req, res) => {
       req.body.email,
     ]);
     if (duplicate.length == 1)
-      return res.status(404).send('Please use another email.');
+      return res.status(404).json({ message: 'Please use another email.' });
     // Hash password
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(user.password, salt);
@@ -98,9 +100,15 @@ router.post('/', async (req, res) => {
     const newUser = await db.query('SELECT * FROM users WHERE user_id = ?', [
       result.insertId,
     ]);
-    res.send(
-      _.pick(newUser[0], ['user_id', 'first_name', 'last_name', 'email'])
-    );
+    // Create activation link
+    let activate = `${process.env.ACTIVATE}?x=${encodeURIComponent(
+      newUser[0].email
+    )}&y=${newUser[0].active}`;
+    // Send info
+    res.status(201).json({
+      user: _.pick(newUser[0], ['user_id', 'first_name', 'last_name', 'email']),
+      activate: activate,
+    });
   } catch (ex) {
     debugDB(chalk.red('Database error ->'), ex.message);
     res.status(500).send('Oops! Something went wrong from our end.');
@@ -116,7 +124,9 @@ router.delete('/:id', [auth, admin], async (req, res) => {
       req.params.id,
     ]);
     if (user.length === 0)
-      return res.status(404).send('The user with the given ID was not found.');
+      return res
+        .status(404)
+        .json({ message: 'The user with the given ID was not found.' });
     // If user exists, delete
     const result = await db.query('DELETE FROM users WHERE user_id = ?', [
       req.params.id,
@@ -127,7 +137,9 @@ router.delete('/:id', [auth, admin], async (req, res) => {
     res.send(user[0]);
   } catch (ex) {
     debugDB(ex.message);
-    res.status(500).send('Oops! Something went wrong from our end.');
+    res
+      .status(500)
+      .json({ message: 'Oops! Something went wrong from our end.' });
   }
 });
 
