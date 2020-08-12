@@ -9,6 +9,7 @@ const _ = require('lodash');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 const db = require('../db');
+// const activateEmail = require('../activateEmail');
 
 // Get all Users (ok)
 // -------------
@@ -82,6 +83,8 @@ router.post('/', async (req, res) => {
   const newUser = await db.query('SELECT * FROM users WHERE user_id = ?', [
     result.insertId,
   ]);
+  // Send activation email
+  // activateEmail(newUser[0].email, newUser[0].active);
   // Create activation link
   let activate = `${process.env.ACTIVATE}?x=${encodeURIComponent(
     newUser[0].email
