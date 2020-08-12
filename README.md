@@ -10,10 +10,13 @@ Create a ".env" file at the root folder with the following info:
 
 ```reStructuredText
 DB_HOST=localhost
-DB_USER=web_user
-DB_PASSWORD=secret_password
-DB_DATABASE=my_database
+DB_USER=dbUser
+DB_PASSWORD=dbPassword
+DB_DATABASE=database
 jwtPrivateKey=myPrivateKey
+EMAIL_HOST=myEmailHost
+EMAIL_USER=myEmail
+EMAIL_PASS=myEmailPassword
 ```
 
 To start the server run:
