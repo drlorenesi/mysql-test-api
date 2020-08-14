@@ -7,7 +7,7 @@ const Joi = require('joi');
 const _ = require('lodash');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const db = require('../db');
+const db = require('../startup/db');
 
 if (!process.env.jwtPrivateKey) {
   console.error(chalk.red('FATAL ERROR: jwtPrivateKey is not defined.'));

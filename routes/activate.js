@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const debugDB = require('debug')('app:db');
 const chalk = require('chalk');
-const db = require('../db');
+const db = require('../startup/db');
 const Joi = require('joi');
 
 // Activate

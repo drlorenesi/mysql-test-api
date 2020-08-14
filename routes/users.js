@@ -8,7 +8,7 @@ const chalk = require('chalk');
 const _ = require('lodash');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
-const db = require('../db');
+const db = require('../startup/db');
 // const activateEmail = require('../activateEmail');
 
 // Get all Users (ok)
@@ -119,7 +119,7 @@ router.delete('/:id', [auth, admin], async (req, res) => {
 
 // Update User (Protected) (ok)
 // -----------------------
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', [auth, admin], async (req, res) => {
   // Validate input before attempting update
   const { error } = validateUser(req.body);
   if (error) return res.status(404).send(error.details[0].message);

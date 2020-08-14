@@ -5,7 +5,7 @@
 // This attack will return all user data
 const express = require('express');
 const router = express.Router();
-const db = require('./db');
+const db = require('../startup/db');
 
 router.get('/:id', async (req, res) => {
   console.log(req.params.id);

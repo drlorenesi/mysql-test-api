@@ -1,4 +1,5 @@
 require('dotenv').config();
+const logger = require('./logger');
 const util = require('util');
 const chalk = require('chalk');
 const mysql = require('mysql');
@@ -12,7 +13,11 @@ const pool = mysql.createPool({
 });
 
 pool.getConnection((err, connection) => {
-  if (err) console.log(chalk.red('Database error ->'), err.message);
+  // Consider logging error with logger module "logger.js"
+  if (err) {
+    console.log(chalk.red('Database error ->'), err.message);
+    logger.error('DB Connection Error - %s at %s', err, new Date());
+  }
   if (connection) {
     console.log(
       chalk.blue('- Connected to'),
