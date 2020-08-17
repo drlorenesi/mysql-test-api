@@ -19,6 +19,8 @@ EMAIL_USER=myEmail
 EMAIL_PASS=myEmailPassword
 ```
 
+Make sure to change these values according to your environment (development, testing or production).
+
 To start the server run:
 
 ```bash

@@ -62,9 +62,8 @@ router.post('/', async (req, res) => {
   // Validate input
   const { error } = validateUser(req.body);
   if (error) return res.status(404).send(error.details[0].message);
-  // Create user object, pick only required input properties, add timestamps and active
+  // Create user object, pick only required input properties and add active
   let user = _.pick(req.body, ['first_name', 'last_name', 'email', 'password']);
-  user.registration_date = user.modified = getTimeStamp();
   user.active = uuidv4();
 
   // Check for duplicate email

@@ -11,6 +11,9 @@ require('./startup/config');
 const env = app.get('env').toUpperCase();
 const port = process.env.PORT || 3000;
 
-app.listen(port, () =>
+const server = app.listen(port, () =>
   console.log(chalk.blue(`- ${env} Server started on port: ${port}`))
 );
+
+// Export server constant for tests
+module.exports = server;

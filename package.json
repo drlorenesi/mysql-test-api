@@ -6,7 +6,7 @@
   "scripts": {
     "start": "NODE_ENV=production node index.js",
     "dev": "NODE_ENV=development DEBUG=app:* nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "NODE_ENV=testing jest --watchAll --verbose"
   },
   "repository": {
     "type": "git",
@@ -36,5 +36,9 @@
     "nodemailer": "^6.4.11",
     "uuid": "^8.3.0",
     "winston": "^3.3.3"
+  },
+  "devDependencies": {
+    "jest": "^26.4.0",
+    "supertest": "^4.0.2"
   }
 }

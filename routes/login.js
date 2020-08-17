@@ -6,7 +6,8 @@ const chalk = require('chalk');
 const Joi = require('joi');
 const _ = require('lodash');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+// const jwt = require('jsonwebtoken');
+const generateAuthToken = require('../utils/generateAuthToken');
 const db = require('../startup/db');
 
 if (!process.env.jwtPrivateKey) {
@@ -37,16 +38,13 @@ router.post('/', async (req, res) => {
     if (!validPassword)
       return res.status(400).send('Invalid email or password.');
     // Create payload and send JWT
-    const token = jwt.sign(
-      {
-        user_id: user[0].user_id,
-        first_name: user[0].first_name,
-        user_level: user[0].user_level,
-        email: user[0].email,
-        exp: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour expiration time
-      },
-      process.env.jwtPrivateKey
-    );
+    const payload = {
+      user_id: user[0].user_id,
+      first_name: user[0].first_name,
+      user_level: user[0].user_level,
+      email: user[0].email,
+    };
+    const token = generateAuthToken(payload, process.env.jwtPrivateKey);
     res
       .header('x-auth-token', token)
       .send(_.pick(user[0], ['user_id', 'first_name', 'last_name', 'email']));
