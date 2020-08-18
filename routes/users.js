@@ -61,7 +61,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   // Validate input
   const { error } = validateUser(req.body);
-  if (error) return res.status(404).send(error.details[0].message);
+  if (error) return res.status(400).send(error.details[0].message);
   // Create user object, pick only required input properties and add active
   let user = _.pick(req.body, ['first_name', 'last_name', 'email', 'password']);
   user.active = uuidv4();
@@ -71,7 +71,7 @@ router.post('/', async (req, res) => {
     req.body.email,
   ]);
   if (duplicate.length == 1)
-    return res.status(404).json({ message: 'Please use another email.' });
+    return res.status(400).json({ message: 'Please use another email.' });
   // Hash password
   const salt = await bcrypt.genSalt(10);
   user.password = await bcrypt.hash(user.password, salt);
@@ -121,7 +121,7 @@ router.delete('/:id', [auth, admin], async (req, res) => {
 router.put('/:id', [auth, admin], async (req, res) => {
   // Validate input before attempting update
   const { error } = validateUser(req.body);
-  if (error) return res.status(404).send(error.details[0].message);
+  if (error) return res.status(400).send(error.details[0].message);
 
   // Search for user
   const user = await db.query('SELECT * FROM users WHERE user_id = ?', [
@@ -154,7 +154,7 @@ router.put('/:id', [auth, admin], async (req, res) => {
     ]);
     debugDB(chalk.blue('Updated rows:'), result.changedRows);
   } else {
-    return res.status(404).send('Please use another email.');
+    return res.status(400).send('Please use another email.');
   }
   // Get updated user info
   const updatedInfo = await db.query('SELECT * FROM users WHERE user_id = ?', [

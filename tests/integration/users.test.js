@@ -1,6 +1,6 @@
 const request = require('supertest');
 const db = require('../../startup/db');
-// let server;
+let server;
 
 const user = {
   first_name: 'John',
@@ -9,12 +9,16 @@ const user = {
   password: '12345',
 };
 
-describe('/api/genres', () => {
+describe('/api/users', () => {
   beforeEach(() => {
     server = require('../../index');
   });
   afterEach(async () => {
     await db.query('DELETE FROM users WHERE email = ?', [user.email]);
+    server.close();
+  });
+  afterAll(async () => {
+    db.end();
     server.close();
   });
   describe('GET /', () => {
@@ -42,6 +46,18 @@ describe('/api/genres', () => {
     it('should return 404 if invalid id is passed', async () => {
       res = await request(server).get('/api/users/1');
       expect(res.status).toBe(404);
+    });
+  });
+  describe('GET /me', () => {
+    it('should return 401 if not logged in', async () => {
+      res = await request(server).get('/api/users/me');
+      expect(res.status).toBe(401);
+    });
+  });
+  describe('POST /', () => {
+    it('should return 400 if not logged in', async () => {
+      res = await request(server).post('/api/users/');
+      expect(res.status).toBe(401);
     });
   });
 });

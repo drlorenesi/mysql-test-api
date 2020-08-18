@@ -5,7 +5,6 @@ const chalk = require('chalk');
 const mysql = require('mysql');
 
 const pool = mysql.createPool({
-  connectionLimit: 10,
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
@@ -23,7 +22,8 @@ pool.getConnection((err, connection) => {
       chalk.blue('- Connected to'),
       chalk.magenta(connection.config.database),
       chalk.blue('on'),
-      chalk.magenta(connection.config.host)
+      chalk.magenta(connection.config.host),
+      chalk.magenta(connection.threadId)
     );
     connection.release();
   }
