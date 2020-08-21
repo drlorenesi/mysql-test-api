@@ -1,5 +1,8 @@
+// Before running tests make sure there is no data in the
+// test DataBase
 const request = require('supertest');
 const db = require('../../startup/db');
+const generateAuthToken = require('../../utils/generateAuthToken');
 let server;
 
 const user = {
@@ -7,15 +10,29 @@ const user = {
   last_name: 'Smith',
   email: 'john@test.com',
   password: '12345',
+  user_level: 0,
+};
+
+const admin = {
+  first_name: 'John',
+  last_name: 'Doe',
+  email: 'admin@test.com',
+  password: '12345',
+  user_level: 1,
 };
 
 describe('/api/users', () => {
-  beforeEach(() => {
+  beforeAll(() => {
     server = require('../../index');
   });
+  // beforeEach(() => {
+  //   server = require('../../index');
+  // });
   afterEach(async () => {
-    await db.query('DELETE FROM users WHERE email = ?', [user.email]);
-    server.close();
+    await db.query('DELETE FROM users WHERE email = ?', [
+      user.email,
+      admin.email,
+    ]);
   });
   afterAll(async () => {
     db.end();
@@ -23,6 +40,7 @@ describe('/api/users', () => {
   });
   describe('GET /', () => {
     it('should return all users', async () => {
+      // Insert Ordinary User
       const newUser = await db.query('INSERT INTO users SET ?', [user]);
       userId = newUser.insertId;
       const res = await request(server).get('/api/users');
@@ -34,6 +52,7 @@ describe('/api/users', () => {
     });
   });
   describe('GET /:id', () => {
+    // Insert Admin User
     it('should return user if valid id is passed', async () => {
       const newUser = await db.query('INSERT INTO users SET ?', [user]);
       userId = newUser.insertId;
@@ -44,7 +63,7 @@ describe('/api/users', () => {
   });
   describe('GET /:id', () => {
     it('should return 404 if invalid id is passed', async () => {
-      res = await request(server).get('/api/users/1');
+      res = await request(server).get('/api/users/x');
       expect(res.status).toBe(404);
     });
   });
@@ -54,10 +73,17 @@ describe('/api/users', () => {
       expect(res.status).toBe(401);
     });
   });
-  describe('POST /', () => {
-    it('should return 400 if not logged in', async () => {
-      res = await request(server).post('/api/users/');
+  describe('PUT /:id', () => {
+    it('should return 401 if user is not logged in', async () => {
+      res = await request(server).put('/api/users/1');
       expect(res.status).toBe(401);
+    });
+    it('should return 403 if user is not authorized', async () => {
+      const token = generateAuthToken(user, process.env.jwtPrivateKey);
+      res = await request(server)
+        .put('/api/users/1')
+        .set('x-auth-token', token);
+      expect(res.status).toBe(403);
     });
   });
 });

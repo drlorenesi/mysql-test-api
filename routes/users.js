@@ -11,7 +11,7 @@ const { v4: uuidv4 } = require('uuid');
 const db = require('../startup/db');
 // const activateEmail = require('../activateEmail');
 
-// Get all Users (ok)
+// Get all Users (Tested)
 // -------------
 router.get('/', async (req, res) => {
   const users = await db.query('SELECT * FROM users ORDER BY last_name ASC');
@@ -30,7 +30,7 @@ router.get('/', async (req, res) => {
   res.send(users);
 });
 
-// Get logged in User (Protected) (Ok)
+// Get logged in User (Protected) ()
 // ------------------------------
 router.get('/me', auth, async (req, res) => {
   const user = await db.query('SELECT * FROM users WHERE email = ?', [
@@ -43,7 +43,7 @@ router.get('/me', auth, async (req, res) => {
   res.send(user[0]);
 });
 
-// Get a specific User (ok)
+// Get a specific User ()
 // -------------------
 router.get('/:id', async (req, res) => {
   const user = await db.query('SELECT * FROM users WHERE user_id = ?', [
@@ -56,7 +56,7 @@ router.get('/:id', async (req, res) => {
   res.send(user[0]);
 });
 
-// Create new User (ok)
+// Create new User ()
 // ---------------
 router.post('/', async (req, res) => {
   // Validate input
@@ -95,7 +95,7 @@ router.post('/', async (req, res) => {
   });
 });
 
-// Delete User (Protected & Admin) (ok)
+// Delete User (Protected & Admin) ()
 // -------------------------------
 router.delete('/:id', [auth, admin], async (req, res) => {
   // Search for user
@@ -116,7 +116,7 @@ router.delete('/:id', [auth, admin], async (req, res) => {
   res.send(user[0]);
 });
 
-// Update User (Protected) (ok)
+// Update User (Protected) ()
 // -----------------------
 router.put('/:id', [auth, admin], async (req, res) => {
   // Validate input before attempting update
