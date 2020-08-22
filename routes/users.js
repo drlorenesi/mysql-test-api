@@ -11,6 +11,19 @@ const { v4: uuidv4 } = require('uuid');
 const db = require('../startup/db');
 // const activateEmail = require('../activateEmail');
 
+// Get logged in User (Protected) (Tested)
+// ------------------------------
+router.get('/me', [auth], async (req, res) => {
+  const user = await db.query('SELECT * FROM users WHERE email = ?', [
+    req.user.email,
+  ]);
+  if (user.length === 0)
+    return res.status(404).send('The user with the given email was not found.');
+  // Return only selected updated fields user
+  // res.send(_.pick(user[0], ['user_id', 'first_name', 'last_name', 'email']));
+  res.send(user[0]);
+});
+
 // Get all Users (Tested)
 // -------------
 router.get('/', async (req, res) => {
@@ -30,20 +43,7 @@ router.get('/', async (req, res) => {
   res.send(users);
 });
 
-// Get logged in User (Protected) ()
-// ------------------------------
-router.get('/me', auth, async (req, res) => {
-  const user = await db.query('SELECT * FROM users WHERE email = ?', [
-    req.user.email,
-  ]);
-  if (user.length === 0)
-    return res.status(404).send('The user with the given email was not found.');
-  // Return only selected updated fields user
-  // res.send(_.pick(user[0], ['user_id', 'first_name', 'last_name', 'email']));
-  res.send(user[0]);
-});
-
-// Get a specific User ()
+// Get a specific User (Tested)
 // -------------------
 router.get('/:id', async (req, res) => {
   const user = await db.query('SELECT * FROM users WHERE user_id = ?', [
@@ -116,7 +116,7 @@ router.delete('/:id', [auth, admin], async (req, res) => {
   res.send(user[0]);
 });
 
-// Update User (Protected) ()
+// Update User (Protected) (Tested)
 // -----------------------
 router.put('/:id', [auth, admin], async (req, res) => {
   // Validate input before attempting update
