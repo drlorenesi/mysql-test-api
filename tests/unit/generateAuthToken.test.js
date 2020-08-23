@@ -1,4 +1,4 @@
-const generateAuthToken = require('../../../utils/generateAuthToken');
+const generateAuthToken = require('../../utils/generateAuthToken');
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 

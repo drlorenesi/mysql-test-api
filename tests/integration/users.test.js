@@ -47,7 +47,7 @@ describe('/api/users', () => {
     });
   });
   describe('GET /', () => {
-    it('should return all users', async () => {
+    it('should return 200 all users', async () => {
       await db.query('INSERT INTO users SET ?', [user]);
       const res = await request(server).get('/api/users');
       expect(res.status).toBe(200);
@@ -58,14 +58,14 @@ describe('/api/users', () => {
     });
   });
   describe('GET /:id', () => {
-    it('should return user if valid id is passed', async () => {
+    it('should return 200 if valid user id was sent', async () => {
       const newUser = await db.query('INSERT INTO users SET ?', [user]);
       userId = newUser.insertId;
       res = await request(server).get('/api/users/' + userId);
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('email', user.email);
     });
-    it('should return 404 if invalid id is passed', async () => {
+    it('should return 404 if invalid user id was sent', async () => {
       res = await request(server).get('/api/users/x');
       expect(res.status).toBe(404);
     });
@@ -74,6 +74,10 @@ describe('/api/users', () => {
     it('should return 401 if user is not logged in', async () => {
       res = await request(server).put('/api/users/1');
       expect(res.status).toBe(401);
+    });
+    it('should return 400 if user token is not valid', async () => {
+      res = await request(server).put('/api/users/1').set('x-auth-token', 123);
+      expect(res.status).toBe(400);
     });
     it('should return 403 if user is not authorized', async () => {
       const token = generateAuthToken(user, process.env.jwtPrivateKey);
@@ -84,11 +88,11 @@ describe('/api/users', () => {
     });
   });
   describe('POST /', () => {
-    it('should return 400 if user info is invalid', async () => {
+    it('should return 400 if user info is not valid', async () => {
       res = await request(server).post('/api/users/').send(errUser);
       expect(res.status).toBe(400);
     });
-    it('should return 201 if user info is valid', async () => {
+    it('should return 201 if user was added', async () => {
       res = await request(server).post('/api/users/').send(admin);
       expect(res.status).toBe(201);
       expect(res.body).toHaveProperty('user.email', admin.email);
