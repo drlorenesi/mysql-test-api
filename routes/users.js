@@ -21,7 +21,7 @@ router.get('/me', [auth], async (req, res) => {
     return res.status(404).send('The user with the given email was not found.');
   // Return only selected updated fields user
   // res.send(_.pick(user[0], ['user_id', 'first_name', 'last_name', 'email']));
-  res.send(user[0]);
+  res.status(200).send(user[0]);
 });
 
 // Get all Users (Tested)
@@ -40,7 +40,7 @@ router.get('/', async (req, res) => {
   //     ])
   //   )
   // );
-  res.send(users);
+  res.status(200).send(users);
 });
 
 // Get a specific User (Tested)
@@ -53,7 +53,7 @@ router.get('/:id', async (req, res) => {
     return res.status(404).send('The user with the given ID was not found.');
   // Return only selected updated fields user
   // res.send(_.pick(user[0], ['user_id', 'first_name', 'last_name', 'email']));
-  res.send(user[0]);
+  res.status(200).send(user[0]);
 });
 
 // Create new User ()
@@ -91,6 +91,7 @@ router.post('/', async (req, res) => {
   // Send info
   res.status(201).json({
     user: _.pick(newUser[0], ['user_id', 'first_name', 'last_name', 'email']),
+
     activate: activate,
   });
 });
@@ -113,7 +114,7 @@ router.delete('/:id', [auth, admin], async (req, res) => {
   debugDB(chalk.blue('Affected rows:'), result.affectedRows);
   // Return only selected fields of deleted user
   // res.send(_.pick(user[0], ['user_id', 'first_name', 'last_name', 'email']));
-  res.send(user[0]);
+  res.status(200).send(user[0]);
 });
 
 // Update User (Protected) (Tested)
@@ -144,7 +145,6 @@ router.put('/:id', [auth, admin], async (req, res) => {
       'password',
       'user_level',
     ]);
-    update.modified = getTimeStamp();
     // Hash password
     const salt = await bcrypt.genSalt(10);
     update.password = await bcrypt.hash(update.password, salt);
@@ -161,17 +161,11 @@ router.put('/:id', [auth, admin], async (req, res) => {
     req.params.id,
   ]);
   // Return only selected updated fields user
-  res.send(
-    _.pick(updatedInfo[0], ['user_id', 'first_name', 'last_name', 'email'])
-  );
+  res
+    .status(200)
+    .send(
+      _.pick(updatedInfo[0], ['user_id', 'first_name', 'last_name', 'email'])
+    );
 });
-
-// Get Timestamp funtion
-function getTimeStamp() {
-  let date = new Date();
-  return (
-    date.toISOString().split('T')[0] + ' ' + date.toTimeString().split(' ')[0]
-  );
-}
 
 module.exports = router;

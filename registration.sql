@@ -19,7 +19,7 @@ CREATE TABLE users (
   user_level TINYINT UNSIGNED NOT NULL DEFAULT 0,
   active CHAR(36) NULL,
   registration_date DATETIME NOT NULL DEFAULT NOW(),
-  modified DATETIME NOT NULL DEFAULT NOW(),
+  modified DATETIME NOT NULL DEFAULT NOW() ON UPDATE NOW(),
   PRIMARY KEY (user_id),
   FOREIGN KEY (user_level) REFERENCES user_level(level_id) ON UPDATE CASCADE -- MariaDB: CONSTRAINT email_unique UNIQUE (email)
 );
