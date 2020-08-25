@@ -8,6 +8,9 @@
     "dev": "NODE_ENV=development DEBUG=app:* nodemon index.js",
     "test": "NODE_ENV=testing jest --watch --verbose --coverage"
   },
+  "engines": {
+    "node": "12.18.3"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/drlorenesi/test-api.git"
@@ -20,7 +23,6 @@
   },
   "homepage": "https://github.com/drlorenesi/test-api#readme",
   "dependencies": {
-    "@sentry/node": "^5.20.1",
     "bcrypt": "^5.0.0",
     "chalk": "^4.0.0",
     "compression": "^1.7.4",

@@ -1,6 +1,5 @@
 // Dependencies
 const express = require('express');
-const helmet = require('helmet');
 const morgan = require('morgan');
 // Routes
 const test = require('../routes/sqlInjection');
@@ -13,7 +12,6 @@ const error = require('../middleware/error');
 function routes(app) {
   // Middleware
   app.use(express.json());
-  app.use(helmet());
   if (app.get('env') === 'development') {
     app.use(morgan('dev'));
   }

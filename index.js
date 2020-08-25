@@ -7,6 +7,9 @@ const app = express();
 require('./startup/logger');
 require('./startup/routes')(app);
 require('./startup/config');
+if (app.get('env') === 'production') {
+  require('./startup/prod')(app);
+}
 
 const env = app.get('env').toUpperCase();
 const port = process.env.PORT || 3000;
