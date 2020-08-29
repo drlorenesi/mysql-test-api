@@ -1,14 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const validateUser = require('../validation/user');
+// Middleware and Validation
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
-const debugDB = require('debug')('app:db');
-const chalk = require('chalk');
+const validate = require('../middleware/validate');
+const validateUser = require('../validation/user');
+// Dependencies
+const db = require('../startup/db');
 const _ = require('lodash');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
-const db = require('../startup/db');
+const debugDB = require('debug')('app:db');
+const chalk = require('chalk');
 // const activateEmail = require('../activateEmail');
 
 // Get logged in User (Protected) (Tested)
@@ -26,7 +29,7 @@ router.get('/me', [auth], async (req, res) => {
 
 // Get all Users (Tested)
 // -------------
-router.get('/', async (req, res) => {
+router.get('/', [], async (req, res) => {
   const users = await db.query('SELECT * FROM users ORDER BY last_name ASC');
   // Return only selected user data
   // res.send(
@@ -45,7 +48,7 @@ router.get('/', async (req, res) => {
 
 // Get a specific User (Tested)
 // -------------------
-router.get('/:id', async (req, res) => {
+router.get('/:id', [], async (req, res) => {
   const user = await db.query('SELECT * FROM users WHERE user_id = ?', [
     req.params.id,
   ]);
@@ -58,10 +61,7 @@ router.get('/:id', async (req, res) => {
 
 // Create new User ()
 // ---------------
-router.post('/', async (req, res) => {
-  // Validate input
-  const { error } = validateUser(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
+router.post('/', [validate(validateUser)], async (req, res) => {
   // Create user object, pick only required input properties and add active
   let user = _.pick(req.body, ['first_name', 'last_name', 'email', 'password']);
   user.active = uuidv4();
@@ -71,7 +71,7 @@ router.post('/', async (req, res) => {
     req.body.email,
   ]);
   if (duplicate.length == 1)
-    return res.status(400).json({ message: 'Please use another email.' });
+    return res.status(400).json({ error: 'Please use another email.' });
   // Hash password
   const salt = await bcrypt.genSalt(10);
   user.password = await bcrypt.hash(user.password, salt);
@@ -106,7 +106,7 @@ router.delete('/:id', [auth, admin], async (req, res) => {
   if (user.length === 0)
     return res
       .status(404)
-      .json({ message: 'The user with the given ID was not found.' });
+      .json({ error: 'The user with the given ID was not found.' });
   // If user exists, delete
   const result = await db.query('DELETE FROM users WHERE user_id = ?', [
     req.params.id,
@@ -119,11 +119,7 @@ router.delete('/:id', [auth, admin], async (req, res) => {
 
 // Update User (Protected) (Tested)
 // -----------------------
-router.put('/:id', [auth, admin], async (req, res) => {
-  // Validate input before attempting update
-  const { error } = validateUser(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
-
+router.put('/:id', [auth, admin, validate(validateUser)], async (req, res) => {
   // Search for user
   const user = await db.query('SELECT * FROM users WHERE user_id = ?', [
     req.params.id,

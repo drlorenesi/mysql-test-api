@@ -95,7 +95,9 @@ describe('/api/users', () => {
     it('Return 201 if user was added', async () => {
       res = await request(server).post('/api/users/').send(admin);
       expect(res.status).toBe(201);
-      expect(res.body).toHaveProperty('user.email', admin.email);
+      // Note: add expecected properties not the whole user object after
+      // implementing email activation
+      expect(Object.keys(res.body)).toEqual(expect.arrayContaining(['user']));
     });
   });
 });
