@@ -4,7 +4,7 @@
   "description": "Test API for MySQL.",
   "main": "index.js",
   "scripts": {
-    "start": "NODE_ENV=production node index.js",
+    "start": "node index.js",
     "dev": "NODE_ENV=development DEBUG=app:* nodemon index.js",
     "test": "NODE_ENV=testing jest --watch --verbose --coverage"
   },
