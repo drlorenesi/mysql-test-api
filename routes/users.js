@@ -131,27 +131,24 @@ router.put('/:id', [auth, admin, validate(validateUser)], async (req, res) => {
     'SELECT user_id FROM users WHERE email = ? AND user_id != ?',
     [req.body.email, req.params.id]
   );
-  // If e-mail is unique update info
-  if (duplicate.length == 0) {
-    // Create update object, pick only required input properties and add timestamps
-    let update = _.pick(req.body, [
-      'first_name',
-      'last_name',
-      'email',
-      'password',
-      'user_level',
-    ]);
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    update.password = await bcrypt.hash(update.password, salt);
-    const result = await db.query('UPDATE users SET ? WHERE user_id = ?', [
-      update,
-      req.params.id,
-    ]);
-    debugDB(chalk.blue('Updated rows:'), result.changedRows);
-  } else {
-    return res.status(400).send('Please use another email.');
-  }
+  if (duplicate.length > 0)
+    return res.status(400).json({ message: 'Please use another email.' });
+  // Create update object and pick only required input properties
+  let update = _.pick(req.body, [
+    'first_name',
+    'last_name',
+    'email',
+    'password',
+    'user_level',
+  ]);
+  // Hash password
+  const salt = await bcrypt.genSalt(10);
+  update.password = await bcrypt.hash(update.password, salt);
+  const result = await db.query('UPDATE users SET ? WHERE user_id = ?', [
+    update,
+    req.params.id,
+  ]);
+  debugDB(chalk.blue('Updated rows:'), result.changedRows);
   // Get updated user info
   const updatedInfo = await db.query('SELECT * FROM users WHERE user_id = ?', [
     req.params.id,

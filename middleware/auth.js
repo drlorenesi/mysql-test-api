@@ -1,7 +1,7 @@
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 
-function auth(req, res, next) {
+module.exports = (req, res, next) => {
   const token = req.header('x-auth-token');
   if (!token)
     return res
@@ -15,6 +15,4 @@ function auth(req, res, next) {
   } catch (ex) {
     res.status(400).json({ message: 'Invalid token.' });
   }
-}
-
-module.exports = auth;
+};
