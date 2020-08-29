@@ -1,10 +1,11 @@
+// Express
 const express = require('express');
 const router = express.Router();
 // Middleware and Validation
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
 const validate = require('../middleware/validate');
-const validateUser = require('../validation/user');
+const validateUser = require('../validation/validateUser');
 // Dependencies
 const db = require('../startup/db');
 const _ = require('lodash');
@@ -14,8 +15,8 @@ const debugDB = require('debug')('app:db');
 const chalk = require('chalk');
 // const activateEmail = require('../activateEmail');
 
-// Get logged in User (Protected) (Tested)
-// ------------------------------
+// Get logged in User
+// ------------------
 router.get('/me', [auth], async (req, res) => {
   const user = await db.query('SELECT * FROM users WHERE email = ?', [
     req.user.email,
@@ -27,7 +28,7 @@ router.get('/me', [auth], async (req, res) => {
   res.status(200).send(user[0]);
 });
 
-// Get all Users (Tested)
+// Get all Users
 // -------------
 router.get('/', [], async (req, res) => {
   const users = await db.query('SELECT * FROM users ORDER BY last_name ASC');
@@ -46,7 +47,7 @@ router.get('/', [], async (req, res) => {
   res.status(200).send(users);
 });
 
-// Get a specific User (Tested)
+// Get a specific User
 // -------------------
 router.get('/:id', [], async (req, res) => {
   const user = await db.query('SELECT * FROM users WHERE user_id = ?', [
@@ -59,23 +60,22 @@ router.get('/:id', [], async (req, res) => {
   res.status(200).send(user[0]);
 });
 
-// Create new User ()
+// Create new User (Currently sends "activate" object)
 // ---------------
 router.post('/', [validate(validateUser)], async (req, res) => {
-  // Create user object, pick only required input properties and add active
-  let user = _.pick(req.body, ['first_name', 'last_name', 'email', 'password']);
-  user.active = uuidv4();
-
   // Check for duplicate email
   const duplicate = await db.query('SELECT * FROM users WHERE email LIKE ?', [
     req.body.email,
   ]);
   if (duplicate.length == 1)
     return res.status(400).json({ error: 'Please use another email.' });
+  // Create user object, pick only required input properties and add uuid
+  let user = _.pick(req.body, ['first_name', 'last_name', 'email', 'password']);
+  user.active = uuidv4();
   // Hash password
   const salt = await bcrypt.genSalt(10);
   user.password = await bcrypt.hash(user.password, salt);
-  // Insert valid user
+  // Insert user
   const result = await db.query('INSERT INTO users SET ?', [user]);
   debugDB(chalk.blue('Affected rows:'), result.affectedRows);
   // Return only selected fields of new user
@@ -91,7 +91,7 @@ router.post('/', [validate(validateUser)], async (req, res) => {
   // Send info
   res.status(201).json({
     user: _.pick(newUser[0], ['user_id', 'first_name', 'last_name', 'email']),
-
+    // activate object
     activate: activate,
   });
 });
@@ -117,8 +117,8 @@ router.delete('/:id', [auth, admin], async (req, res) => {
   res.status(200).send(user[0]);
 });
 
-// Update User (Protected) (Tested)
-// -----------------------
+// Update User
+// -----------
 router.put('/:id', [auth, admin, validate(validateUser)], async (req, res) => {
   // Search for user
   const user = await db.query('SELECT * FROM users WHERE user_id = ?', [

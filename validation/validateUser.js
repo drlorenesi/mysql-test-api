@@ -1,7 +1,7 @@
 const Joi = require('joi');
 
 // Validation function
-function validateUser(user) {
+module.exports = (user) => {
   const schema = Joi.object({
     first_name: Joi.string()
       .regex(/^[a-zA-Z\p{L} /'.-]{3,45}$/u)
@@ -16,6 +16,4 @@ function validateUser(user) {
     modified: Joi.date(), // might not be necesary
   });
   return schema.validate(user);
-}
-
-module.exports = validateUser;
+};
