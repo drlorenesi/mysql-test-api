@@ -13,7 +13,7 @@ const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 const debugDB = require('debug')('app:db');
 const chalk = require('chalk');
-// const activateEmail = require('../activateEmail');
+const activationEmail = require('../utils/activationEmail');
 
 // Get logged in User
 // ------------------
@@ -31,19 +31,14 @@ router.get('/me', [auth], async (req, res) => {
 // Get all Users
 // -------------
 router.get('/', [], async (req, res) => {
+  myUndefinedFunction();
   const users = await db.query('SELECT * FROM users ORDER BY last_name ASC');
   // Return only selected user data
-  // res.send(
-  //   users.map((user) =>
-  //     _.pick(user, [
-  //       'user_id',
-  //       'first_name',
-  //       'last_name',
-  //       'email',
-  //       'user_level',
-  //     ])
-  //   )
-  // );
+  // res
+  //   .status(200)
+  //   .send(
+  //     users.map((user) => _.pick(user, ['first_name', 'last_name', 'email']))
+  //   );
   res.status(200).send(users);
 });
 
@@ -69,9 +64,9 @@ router.post('/', [validate(validateUser)], async (req, res) => {
   ]);
   if (duplicate.length == 1)
     return res.status(400).json({ error: 'Please use another email.' });
-  // Create user object, pick only required input properties and add uuid
+  // Create user object (intentionally leave out 'user_level')
   let user = _.pick(req.body, ['first_name', 'last_name', 'email', 'password']);
-  user.active = uuidv4();
+  user.activated = uuidv4();
   // Hash password
   const salt = await bcrypt.genSalt(10);
   user.password = await bcrypt.hash(user.password, salt);
@@ -83,17 +78,17 @@ router.post('/', [validate(validateUser)], async (req, res) => {
     result.insertId,
   ]);
   // Send activation email
-  // activateEmail(newUser[0].email, newUser[0].active);
-  // Create activation link
-  let activate = `${process.env.ACTIVATE}?x=${encodeURIComponent(
-    newUser[0].email
-  )}&y=${newUser[0].active}`;
-  // Send info
-  res.status(201).json({
-    user: _.pick(newUser[0], ['user_id', 'first_name', 'last_name', 'email']),
-    // activate object
-    activate: activate,
-  });
+  if (process.env.SEND_ACTIVATION == true) {
+    activationEmail(
+      newUser[0].first_name,
+      newUser[0].email,
+      newUser[0].activated
+    );
+  }
+  // Return new user
+  res
+    .status(201)
+    .send(_.pick(newUser[0], ['user_id', 'first_name', 'last_name', 'email']));
 });
 
 // Delete User (Protected & Admin) ()

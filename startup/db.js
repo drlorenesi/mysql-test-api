@@ -1,4 +1,3 @@
-require('dotenv').config();
 const logger = require('./logger');
 const util = require('util');
 const chalk = require('chalk');
@@ -12,7 +11,6 @@ const pool = mysql.createPool({
 });
 
 pool.getConnection((err, connection) => {
-  // Consider logging error with logger module "logger.js"
   if (err) {
     console.log(chalk.red('Database error ->'), err.message);
     logger.error('DB Connection Error - %s at %s', err, new Date());
@@ -27,7 +25,7 @@ pool.getConnection((err, connection) => {
     );
     connection.release();
   }
-  // return;
+  return;
 });
 
 // Promisify for Node.js async/await.

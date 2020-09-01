@@ -1,5 +1,12 @@
 require('express-async-errors');
 const { createLogger, format, transports } = require('winston');
+const Sentry = require('winston-transport-sentry-node').default;
+
+const options = {
+  sentry: {
+    dsn: process.env.SENTRY,
+  },
+};
 
 const logger = createLogger({
   format: format.combine(
@@ -11,7 +18,10 @@ const logger = createLogger({
     format.json(),
     format.prettyPrint()
   ),
-  transports: [new transports.File({ filename: 'errors.log' })],
+  transports: [
+    new transports.File({ filename: 'errors.log' }),
+    new Sentry(options),
+  ],
 });
 
 if (process.env.NODE_ENV !== 'production') {

@@ -1,4 +1,3 @@
-require('dotenv').config();
 const nodemailer = require('nodemailer');
 const chalk = require('chalk');
 
@@ -12,23 +11,21 @@ let transporter = nodemailer.createTransport({
   },
 });
 
-async function activateEmail(email, activate) {
-  let link = `${process.env.ACTIVATE}?x=${encodeURIComponent(
+module.exports = async (name, email, activate) => {
+  let link = `${process.env.BASE_URL}?x=${encodeURIComponent(
     email
   )}&y=${activate}`;
   try {
     let info = await transporter.sendMail({
-      from: `"Chocolates 🍫" <${process.env.EMAIL_USER}>`,
+      from: `"Users API 👋" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: 'Activate Account',
-      html: `<h3>Hello!</h3>
-      <p>Thank you for registering! Please click on the confirmation code below to activate your account:</p>
+      subject: 'Please Activate your Account',
+      html: `<h3>Hi ${name}!</h3>
+      <p>Thanks for registering! Please click on the confirmation code below to activate your account:</p>
       <p><a href="${link}">${link}</a></p>`,
     });
     console.log('Message sent: %s', info.messageId);
   } catch (ex) {
     console.log(chalk.red(`Error: ${ex.response}`));
   }
-}
-
-module.exports = activateEmail;
+};

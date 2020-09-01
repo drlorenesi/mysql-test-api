@@ -4,12 +4,13 @@ const chalk = require('chalk');
 
 const app = express();
 
-require('./startup/logger');
-require('./startup/routes')(app);
-require('./startup/config');
 if (app.get('env') === 'production') {
   require('./startup/prod')(app);
 }
+
+require('./startup/logger');
+require('./startup/routes')(app);
+require('./startup/config');
 
 const env = app.get('env').toUpperCase();
 const port = process.env.PORT || 3000;

@@ -1,7 +1,6 @@
-require('dotenv').config();
-
 module.exports = () => {
   if (!process.env.jwtPrivateKey) {
-    throw new Error('FATAL ERROR: jwtPrivateKey is not defined.');
+    console.error(chalk.red('FATAL ERROR: jwtPrivateKey is not defined.'));
+    process.exit(1);
   }
 };
