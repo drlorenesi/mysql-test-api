@@ -26,6 +26,9 @@ SEND_ACTIVATION=true/false
 EMAIL_HOST=myEmailHost
 EMAIL_USER=myEmail
 EMAIL_PASS=myEmailPassword
+
+## Sentry Logging
+SENTRY=https://...
 ```
 
 Make sure to change these values according to your environment (development, testing or production).
