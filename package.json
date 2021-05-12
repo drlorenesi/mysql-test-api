@@ -36,7 +36,7 @@
     "lodash": "^4.17.19",
     "morgan": "^1.10.0",
     "mysql": "^2.18.1",
-    "nodemailer": "^6.4.11",
+    "nodemailer": "^6.4.16",
     "uuid": "^8.3.0",
     "winston": "^3.3.3",
     "winston-transport-sentry-node": "^0.6.0"
